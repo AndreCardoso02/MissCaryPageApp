@@ -313,6 +313,9 @@
                 </div>
             </div>
         </div>
+        <!-- iframe invisível para submissão sem CORS -->
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
@@ -321,6 +324,90 @@
         <!-- * *                               SB Forms JS                               * *-->
         <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+        <!-- <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script> -->
+
+        <!-- iframe invisível para submissão direta ao Google Forms -->
+        <!-- Substitui a integração anterior por este script -->
+<script>
+(() => {
+  // REMOVE manualmente a linha sb-forms-latest.js do HTML.
+  // Configuração
+  const FORM_ACTION = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSd9FqbcsQxUPhj-wkwWk6ckiKnbLabSkKLpnZEByTTHxV4TQQ/formResponse";
+  const ENTRY_NAME = "entry.1970417404";
+  const ENTRY_EMAIL = "entry.708008370";
+  const ENTRY_PHONE = "entry.1783785779";
+  const ENTRY_MESSAGE = "entry.501809155";
+
+  const contactForm = document.getElementById("contactForm");
+  if (!contactForm) return console.warn("contactForm não encontrado.");
+
+  // garante botão ativo
+  const submitBtn = document.getElementById("submitButton");
+  if (submitBtn) {
+    submitBtn.classList.remove("disabled");
+    submitBtn.removeAttribute("disabled");
+  }
+
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  contactForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const message = document.getElementById("message").value.trim();
+
+    if (!name) return alert("Preencha o nome.");
+    if (!email || !isEmail(email)) return alert("Email inválido.");
+    if (!phone) return alert("Preencha o telefone.");
+    if (!message) return alert("Escreva a mensagem.");
+
+    // UI
+    if (submitBtn) { submitBtn.classList.add("disabled"); submitBtn.setAttribute("disabled","true"); }
+
+    // prepara FormData com os entry.* corretos
+    const data = new FormData();
+    data.append(ENTRY_NAME, name);
+    data.append(ENTRY_EMAIL, email);
+    data.append(ENTRY_PHONE, phone);
+    data.append(ENTRY_MESSAGE, message);
+
+    // POST com no-cors (não lê resposta, mas o envio costuma chegar)
+    try {
+      await fetch(FORM_ACTION, {
+        method: "POST",
+        body: data,
+        mode: "no-cors"
+      });
+
+      // sucesso (não podemos verificar a resposta real por no-cors)
+      document.getElementById("submitSuccessMessage").classList.remove("d-none");
+      document.getElementById("submitErrorMessage").classList.add("d-none");
+
+      // limpa form e fecha modal
+      contactForm.reset();
+      setTimeout(() => {
+        try {
+          const modalEl = document.getElementById('feedbackModal');
+          const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+          modalInstance.hide();
+        } catch (err) {}
+      }, 900);
+
+    } catch (err) {
+      console.error("Erro no fetch:", err);
+      document.getElementById("submitErrorMessage").classList.remove("d-none");
+      document.getElementById("submitSuccessMessage").classList.add("d-none");
+    } finally {
+      if (submitBtn) {
+        submitBtn.classList.remove("disabled");
+        submitBtn.removeAttribute("disabled");
+      }
+    }
+  });
+})();
+</script>
+
     </body>
 </html>
